@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CLIENT
+  ADMIN
+  EMPLOYEE
+}
+
+enum BookingStatus {
+  NEW
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED_BY_CLIENT
+  CANCELLED_BY_ADMIN
+  RESCHEDULED
+}
+
+model User {
+  id           String         @id @default(cuid())
+  name         String
+  email        String         @unique
+  phone        String
+  passwordHash String
+  role         UserRole       @default(CLIENT)
+  employee     Employee?
+  cars         Car[]
+  bookings     Booking[]
+  notifications Notification[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Car {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brand        String
+  model        String
+  year         Int
+  licensePlate String
+  vin          String?
+  engineType   String
+  bookings     Booking[]
+  createdAt    DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model ServiceCategory {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  services    Service[]
+}
+
+model Service {
+  id              String          @id @default(cuid())
+  categoryId      String
+  category        ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name            String
+  description     String
+  price           Int
+  durationMinutes Int
+  isActive        Boolean         @default(true)
+  bookingServices BookingService[]
+
+  @@index([categoryId])
+}
+
+model Employee {
+  id             String        @id @default(cuid())
+  userId         String?       @unique
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name           String
+  specialization String
+  phone          String
+  email          String
+  isActive       Boolean       @default(true)
+  bookings       Booking[]
+  blockedSlots   BlockedSlot[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Booking {
+  id            String          @id @default(cuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  carId         String
+  car           Car             @relation(fields: [carId], references: [id], onDelete: Cascade)
+  employeeId    String?
+  employee      Employee?       @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  bookingDate   DateTime
+  startTime     String
+  endTime       String
+  totalPrice    Int
+  totalDuration Int
+  status        BookingStatus   @default(NEW)
+  comment       String?
+  bookingServices BookingService[]
+  notifications Notification[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([carId])
+  @@index([employeeId])
+  @@index([bookingDate, startTime])
+}
+
+model BookingService {
+  id              String   @id @default(cuid())
+  bookingId       String
+  booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  serviceId       String
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  price           Int
+  durationMinutes Int
+
+  @@index([bookingId])
+  @@index([serviceId])
+}
+
+model WorkingHours {
+  id           String   @id @default(cuid())
+  weekday      Int
+  startTime    String
+  endTime      String
+  isWorkingDay Boolean  @default(true)
+
+  @@unique([weekday])
+}
+
+model BlockedSlot {
+  id         String    @id @default(cuid())
+  employeeId String?
+  employee   Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  date       DateTime
+  startTime  String
+  endTime    String
+  reason     String
+
+  @@index([employeeId, date])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId     String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookingId  String?
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  type      String
+  text      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
