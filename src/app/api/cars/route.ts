@@ -31,7 +31,11 @@ export async function POST(request: NextRequest) {
 
   const car = await prisma.car.create({
     data: {
-      ...parsed.data,
+      brand: parsed.data.brand,
+      model: parsed.data.model,
+      year: parsed.data.year,
+      licensePlate: parsed.data.licensePlate,
+      engineType: parsed.data.engineType,
       vin: parsed.data.vin || null,
       userId: auth.user.id,
     },

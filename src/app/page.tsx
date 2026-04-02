@@ -1,20 +1,20 @@
 import Link from "next/link";
-import { Wrench, ShieldCheck, CalendarDays, Users } from "lucide-react";
+import { CalendarDays, ShieldCheck, BellRing, Wrench } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
 
 const reviews = [
   {
     name: "Артем Б.",
-    text: "Записался ночью, утром уже подтвердили. В кабинете сразу видно статус и комментарии по машине.",
+    text: "Удобно, что можно выбрать время без звонка и сразу понять, сколько займет обслуживание.",
   },
   {
     name: "Светлана К.",
-    text: "Сервис выглядит современно, запись понятная, а администратор быстро перенесла время без звонков.",
+    text: "Записалась вечером, утром уже приехала точно ко времени. Все понятно и без лишней суеты.",
   },
   {
     name: "Николай Р.",
-    text: "Удобно, что можно выбрать несколько услуг сразу и система сама считает длительность визита.",
+    text: "Нравится, что в кабинете хранится история визитов и легко повторно записаться на обслуживание.",
   },
 ];
 
@@ -31,90 +31,125 @@ export default async function HomePage() {
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-16 md:px-6">
-      <section className="grid gap-12 pb-18 pt-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:pt-18">
-        <div className="max-w-3xl">
-          <div className="inline-flex rounded-full border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-sky-100">
-            Онлайн-запись для автосервиса нового поколения
-          </div>
-          <h1 className="mt-6 font-[family:var(--font-display)] text-5xl font-semibold leading-[1.02] text-white md:text-7xl">
-            Автосервис, в который записываются без звонков и ожидания.
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg text-slate-300">
-            AvtoSlot помогает клиенту выбрать услугу, слот и автомобиль за пару
-            минут, а команде сервиса дает живую панель заявок, мастеров и
-            текущей загрузки.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Link
-              href="/booking"
-              className="rounded-full bg-sky-400 px-6 py-4 text-sm font-semibold text-slate-950 transition hover:bg-sky-300"
-            >
-              Записаться онлайн
-            </Link>
-            <Link
-              href="/services"
-              className="rounded-full border border-white/15 px-6 py-4 text-sm font-semibold text-white transition hover:border-white/35 hover:bg-white/5"
-            >
-              Смотреть услуги
-            </Link>
-          </div>
-        </div>
-
-        <div className="grid gap-4 rounded-[36px] border border-white/10 bg-white/10 p-5 backdrop-blur">
-          <div className="rounded-[28px] bg-slate-950 p-6 text-white shadow-[0_24px_70px_rgba(8,18,35,0.45)]">
-            <p className="text-sm uppercase tracking-[0.24em] text-sky-200">
-              Что есть в MVP
+    <div className="page-shell">
+      <section>
+        <div className="grid gap-8 rounded-[40px] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[0_28px_90px_rgba(17,32,51,0.1)] backdrop-blur md:p-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:p-10">
+          <div className="max-w-3xl">
+            <div className="eyebrow inline-flex rounded-full border border-[rgba(15,139,141,0.18)] bg-[rgba(15,139,141,0.08)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em]">
+              Запись онлайн 24/7
+            </div>
+            <h1 className="mt-6 font-[family:var(--font-display)] text-4xl font-semibold leading-[1.02] text-[var(--color-ink)] md:text-6xl">
+              Обслуживание автомобиля без очередей и лишних звонков
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--color-muted)]">
+              Выберите услугу, дату и удобное время за пару минут. Мы заранее
+              подготовим заказ, а вы будете видеть статус записи в личном
+              кабинете.
             </p>
-            <div className="mt-6 grid gap-4">
+
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link
+                href="/booking"
+                className="accent-button rounded-full px-6 py-4 text-sm font-semibold transition"
+              >
+                Записаться онлайн
+              </Link>
+              <Link
+                href="/services"
+                className="secondary-button rounded-full px-6 py-4 text-sm font-semibold transition"
+              >
+                Смотреть услуги
+              </Link>
+            </div>
+
+            <div className="mt-8 flex flex-wrap gap-3">
               {[
-                ["Клиентская запись", "пошаговый сценарий с автоподбором слота"],
-                ["Личный кабинет", "автомобили, история, уведомления и статусы"],
-                ["Админ-панель", "управление услугами, заявками и расписанием"],
-                ["Панель мастера", "свои записи, статусы и комментарии по работам"],
-              ].map(([title, text]) => (
-                <div key={title} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="font-semibold">{title}</p>
-                  <p className="mt-2 text-sm text-slate-300">{text}</p>
+                "Пн-Пт: 09:00 - 19:00",
+                "Сб: 10:00 - 16:00",
+                "Подтверждение записи онлайн",
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="theme-chip rounded-full px-4 py-2 text-sm"
+                >
+                  {item}
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="dark-card rounded-[32px] p-6">
+            <div className="grid gap-4">
+              <div>
+                <p className="text-sm uppercase tracking-[0.24em] text-[#a7efe5]">
+                  Сегодня в сервисе
+                </p>
+                <h2 className="mt-3 font-[family:var(--font-display)] text-3xl leading-tight">
+                  Быстрая запись и понятные условия
+                </h2>
+              </div>
+
+              <div className="grid gap-3">
+                {[
+                  ["Телефон", "+7 (4012) 99-45-45"],
+                  ["Адрес", "Калининград, Московский проспект, 184"],
+                  ["Ближайшие услуги", "Замена масла, диагностика, развал-схождение"],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="rounded-2xl border border-white/10 bg-white/5 p-4"
+                  >
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                      {label}
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-white">{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <Link
+                href="/contacts"
+                className="accent-button rounded-2xl px-4 py-3 text-center text-sm font-semibold transition"
+              >
+                Контакты и схема проезда
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-4">
+      <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {[
           {
-            title: "Умное бронирование",
-            text: "Система сама исключает занятые и нерабочие интервалы.",
+            title: "Быстрый подбор времени",
+            text: "Свободные окна рассчитываются автоматически без пересечений и очередей.",
             icon: CalendarDays,
           },
           {
-            title: "Контроль качества",
-            text: "Клиент видит статус заявки и комментарии по работам.",
-            icon: ShieldCheck,
-          },
-          {
-            title: "Каталог услуг",
-            text: "Категории, длительность, цены и запись прямо из карточки.",
+            title: "Понятные цены",
+            text: "До записи видно стоимость, длительность работ и состав выбранных услуг.",
             icon: Wrench,
           },
           {
-            title: "Работа команды",
-            text: "Администратор и мастер используют свои роли без лишнего шума.",
-            icon: Users,
+            title: "Статусы и история",
+            text: "В личном кабинете удобно следить за визитами и прошлым обслуживанием автомобиля.",
+            icon: ShieldCheck,
+          },
+          {
+            title: "Напоминания о визите",
+            text: "Запись подтверждается онлайн, а важные изменения отображаются в кабинете клиента.",
+            icon: BellRing,
           },
         ].map((item) => (
           <div
             key={item.title}
-            className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
+            className="surface-card rounded-[28px] p-6"
           >
-            <item.icon className="h-8 w-8 text-sky-600" />
-            <h2 className="mt-5 font-[family:var(--font-display)] text-2xl text-slate-950">
+            <item.icon className="h-8 w-8 text-[var(--color-accent)]" />
+            <h2 className="mt-5 font-[family:var(--font-display)] text-2xl text-[var(--color-ink)]">
               {item.title}
             </h2>
-            <p className="mt-3 text-sm text-slate-600">{item.text}</p>
+            <p className="mt-3 text-sm leading-6 text-[var(--color-muted)]">{item.text}</p>
           </div>
         ))}
       </section>
@@ -122,14 +157,14 @@ export default async function HomePage() {
       <section className="mt-18">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+            <p className="eyebrow text-sm font-semibold uppercase tracking-[0.24em]">
               Популярные услуги
             </p>
-            <h2 className="mt-3 font-[family:var(--font-display)] text-4xl text-slate-950">
-              Каталог, который сразу ведет в запись
+            <h2 className="mt-3 font-[family:var(--font-display)] text-4xl text-[var(--color-ink)]">
+              Выберите подходящую услугу и сразу переходите к записи
             </h2>
           </div>
-          <Link href="/services" className="text-sm font-semibold text-slate-700 underline">
+          <Link href="/services" className="text-sm font-semibold text-[var(--color-accent-strong)] underline">
             Все услуги
           </Link>
         </div>
@@ -138,9 +173,9 @@ export default async function HomePage() {
           {categories.map((category) => (
             <div
               key={category.id}
-              className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]"
+              className="surface-card rounded-[32px] p-6"
             >
-              <p className="text-sm uppercase tracking-[0.22em] text-slate-500">
+              <p className="eyebrow text-sm uppercase tracking-[0.22em]">
                 {category.name}
               </p>
               <div className="mt-5 grid gap-3">
@@ -148,16 +183,18 @@ export default async function HomePage() {
                   <Link
                     key={service.id}
                     href={`/booking?service=${service.id}`}
-                    className="rounded-3xl border border-slate-200 bg-slate-50 p-4 transition hover:border-sky-300 hover:bg-sky-50"
+                    className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4 transition hover:border-[rgba(15,139,141,0.26)] hover:bg-[rgba(15,139,141,0.08)]"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <p className="font-semibold text-slate-950">{service.name}</p>
-                      <span className="text-sm text-slate-500">
+                      <p className="font-semibold text-[var(--color-ink)]">{service.name}</p>
+                      <span className="text-sm text-[var(--color-muted)]">
                         {service.durationMinutes} мин
                       </span>
                     </div>
-                    <p className="mt-2 text-sm text-slate-600">{service.description}</p>
-                    <p className="mt-4 text-sm font-semibold text-slate-800">
+                    <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+                      {service.description}
+                    </p>
+                    <p className="mt-4 text-sm font-semibold text-[var(--color-ink)]">
                       {formatCurrency(service.price)}
                     </p>
                   </Link>
@@ -169,18 +206,18 @@ export default async function HomePage() {
       </section>
 
       <section className="mt-18 grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="rounded-[36px] border border-slate-200 bg-slate-950 p-8 text-white shadow-[0_24px_70px_rgba(8,18,35,0.35)]">
-          <p className="text-sm uppercase tracking-[0.24em] text-sky-200">
-            Почему это удобно
+        <div className="dark-card rounded-[36px] border border-white/10 p-8">
+          <p className="text-sm uppercase tracking-[0.24em] text-[#a7efe5]">
+            Почему выбирают нас
           </p>
           <div className="mt-8 grid gap-6">
             {[
-              "Клиент больше не зависит от телефона и графика администратора.",
-              "Каждая запись привязана к авто, услугам, мастеру и статусу выполнения.",
-              "Панель администратора уже готова под дальнейший рост: CRM, SMS, оплата.",
+              "Работаем по записи, чтобы вы приезжали к назначенному времени без долгого ожидания.",
+              "Услуги, стоимость и длительность обслуживания видны заранее еще до подтверждения визита.",
+              "История посещений и информация по автомобилю всегда под рукой в личном кабинете.",
             ].map((item) => (
               <div key={item} className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                <p className="text-base text-slate-200">{item}</p>
+                <p className="text-base leading-7 text-[rgba(244,250,255,0.9)]">{item}</p>
               </div>
             ))}
           </div>
@@ -190,11 +227,11 @@ export default async function HomePage() {
           {reviews.map((review) => (
             <div
               key={review.name}
-              className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]"
+              className="surface-card flex h-full min-h-[320px] flex-col rounded-[30px] p-6"
             >
-              <div className="h-11 w-11 rounded-2xl bg-sky-100" />
-              <p className="mt-5 text-sm leading-6 text-slate-600">{review.text}</p>
-              <p className="mt-6 font-semibold text-slate-950">{review.name}</p>
+              <div className="h-11 w-11 rounded-2xl bg-[rgba(15,139,141,0.12)]" />
+              <p className="mt-5 text-sm leading-6 text-[var(--color-muted)]">{review.text}</p>
+              <p className="mt-auto pt-6 font-semibold text-[var(--color-ink)]">{review.name}</p>
             </div>
           ))}
         </div>

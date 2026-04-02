@@ -80,18 +80,18 @@ export function EmployeePanel({
 
   return (
     <div className="grid gap-8">
-      <div className="rounded-[32px] border border-white/10 bg-slate-950 p-8 text-white shadow-[0_30px_80px_rgba(15,23,42,0.35)]">
-        <p className="text-sm uppercase tracking-[0.22em] text-sky-200">
+      <div className="dark-card rounded-[32px] border border-white/10 p-8">
+        <p className="text-sm uppercase tracking-[0.22em] text-[#a7efe5]">
           Панель мастера
         </p>
         <h1 className="mt-4 font-[family:var(--font-display)] text-4xl">
           {employeeName}
         </h1>
-        <p className="mt-3 text-slate-300">{specialization}</p>
+        <p className="mt-3 text-[rgba(244,250,255,0.72)]">{specialization}</p>
       </div>
 
       {feedback ? (
-        <div className="rounded-2xl border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+        <div className="rounded-2xl border border-[rgba(15,139,141,0.22)] bg-[rgba(15,139,141,0.1)] px-4 py-3 text-sm text-[var(--color-accent-strong)]">
           {feedback}
         </div>
       ) : null}
@@ -100,24 +100,24 @@ export function EmployeePanel({
         {bookings.map((booking) => (
           <div
             key={booking.id}
-            className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]"
+            className="surface-card rounded-[32px] p-6"
           >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <p className="font-semibold text-slate-950">
+                  <p className="font-semibold text-[var(--color-ink)]">
                     {formatDate(booking.bookingDate)} • {booking.startTime} - {booking.endTime}
                   </p>
                   <StatusBadge status={booking.status} />
                 </div>
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-[var(--color-muted)]">
                   Клиент: {booking.user.name} • {booking.user.phone}
                 </p>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-[var(--color-muted)]">
                   {booking.car.brand} {booking.car.model}, {booking.car.year} •{" "}
                   {booking.car.licensePlate}
                 </p>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-[var(--color-muted)]">
                   {booking.bookingServices.map((item) => item.service.name).join(", ")}
                 </p>
               </div>
@@ -135,7 +135,7 @@ export function EmployeePanel({
                     },
                   }))
                 }
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-sky-300"
+                className="theme-input rounded-2xl px-4 py-3 text-sm outline-none"
               >
                 <option value="CONFIRMED">Подтверждена</option>
                 <option value="IN_PROGRESS">В работе</option>
@@ -153,13 +153,13 @@ export function EmployeePanel({
                     },
                   }))
                 }
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-sky-300"
+                className="theme-input rounded-2xl px-4 py-3 text-sm outline-none"
                 placeholder="Комментарий по работам"
               />
               <button
                 type="button"
                 onClick={() => saveStatus(booking.id)}
-                className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="accent-button rounded-2xl px-4 py-3 text-sm font-semibold transition"
               >
                 Сохранить
               </button>

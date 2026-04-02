@@ -11,7 +11,7 @@ export default async function AuthPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-16 pt-12 md:px-6">
+    <div className="page-shell">
       <AuthPanel />
     </div>
   );

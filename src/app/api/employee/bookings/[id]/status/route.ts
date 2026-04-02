@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { BookingStatus } from "@prisma/client";
 import { requireApiUser } from "@/lib/api";
 import { createNotification } from "@/lib/booking";
+import { getStatusLabel } from "@/lib/constants";
+import { createAuditLog } from "@/lib/observability";
 import { prisma } from "@/lib/prisma";
+import {
+  applyRateLimitHeaders,
+  createRateLimitErrorResponse,
+  rateLimitByRequest,
+} from "@/lib/security";
 import { bookingStatusSchema } from "@/lib/validators";
 
 type Context = {
@@ -26,21 +34,45 @@ export async function PUT(request: NextRequest, { params }: Context) {
     );
   }
 
+  const rateLimit = await rateLimitByRequest(request, {
+    action: "employee:booking_status",
+    keyParts: [auth.user.id, auth.user.employee.id],
+    limit: 90,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    await createAuditLog({
+      action: "employee.booking_status.rate_limited",
+      request,
+      userId: auth.user.id,
+      level: "warn",
+    });
+
+    return createRateLimitErrorResponse(rateLimit);
+  }
+
   const { id } = await params;
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const parsed = bookingStatusSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message || "Некорректные данные" },
-      { status: 400 },
+    return applyRateLimitHeaders(
+      NextResponse.json(
+        { error: parsed.error.issues[0]?.message || "Некорректные данные" },
+        { status: 400 },
+      ),
+      rateLimit,
     );
   }
 
   if (!allowedStatuses.includes(parsed.data.status)) {
-    return NextResponse.json(
-      { error: "Мастер не может установить этот статус" },
-      { status: 403 },
+    return applyRateLimitHeaders(
+      NextResponse.json(
+        { error: "Мастер не может установить этот статус" },
+        { status: 403 },
+      ),
+      rateLimit,
     );
   }
 
@@ -52,7 +84,10 @@ export async function PUT(request: NextRequest, { params }: Context) {
   });
 
   if (!booking) {
-    return NextResponse.json({ error: "Запись не найдена" }, { status: 404 });
+    return applyRateLimitHeaders(
+      NextResponse.json({ error: "Запись не найдена" }, { status: 404 }),
+      rateLimit,
+    );
   }
 
   const updated = await prisma.$transaction(async (tx) => {
@@ -67,13 +102,27 @@ export async function PUT(request: NextRequest, { params }: Context) {
     await createNotification(
       booking.userId,
       "employee_status_changed",
-      `Мастер обновил статус работ: ${parsed.data.status}.`,
+      `Мастер обновил статус работ: ${getStatusLabel(parsed.data.status)}.`,
       booking.id,
+      tx,
+    );
+
+    await createAuditLog(
+      {
+        action: "employee.booking_status.updated",
+        request,
+        userId: auth.user.id,
+        metadata: {
+          bookingId: booking.id,
+          status: parsed.data.status,
+          comment: parsed.data.comment || null,
+        } as Prisma.InputJsonValue,
+      },
       tx,
     );
 
     return result;
   });
 
-  return NextResponse.json(updated);
+  return applyRateLimitHeaders(NextResponse.json(updated), rateLimit);
 }

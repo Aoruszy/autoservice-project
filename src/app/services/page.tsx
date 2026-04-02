@@ -14,13 +14,15 @@ export default async function ServicesPage() {
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-16 pt-12 md:px-6">
-      <section className="max-w-3xl">
-        <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Каталог услуг</p>
-        <h1 className="mt-4 font-[family:var(--font-display)] text-5xl text-slate-950">
+    <div className="page-shell">
+      <section className="page-hero max-w-4xl">
+        <p className="eyebrow text-sm uppercase tracking-[0.24em]">
+          Каталог услуг
+        </p>
+        <h1 className="mt-4 font-[family:var(--font-display)] text-5xl text-[var(--color-ink)]">
           Все работы автосервиса в одном месте
         </h1>
-        <p className="mt-4 text-lg text-slate-600">
+        <p className="mt-4 text-lg leading-8 text-[var(--color-muted)]">
           Клиент видит не только цену, но и примерную длительность работ. Из
           любой карточки можно сразу перейти в запись.
         </p>
@@ -30,14 +32,16 @@ export default async function ServicesPage() {
         {categories.map((category) => (
           <section
             key={category.id}
-            className="rounded-[36px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] md:p-8"
+            className="surface-card rounded-[36px] p-6 md:p-8"
           >
             <div className="max-w-2xl">
-              <p className="text-sm uppercase tracking-[0.22em] text-slate-500">
+              <p className="eyebrow text-sm uppercase tracking-[0.22em]">
                 {category.name}
               </p>
               {category.description ? (
-                <p className="mt-3 text-sm text-slate-600">{category.description}</p>
+                <p className="mt-3 text-sm text-[var(--color-muted)]">
+                  {category.description}
+                </p>
               ) : null}
             </div>
 
@@ -45,24 +49,28 @@ export default async function ServicesPage() {
               {category.services.map((service) => (
                 <div
                   key={service.id}
-                  className="rounded-[28px] border border-slate-200 bg-slate-50 p-5"
+                  className="flex h-full flex-col rounded-[28px] border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-5"
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <h2 className="font-semibold text-slate-950">{service.name}</h2>
-                      <p className="mt-2 text-sm text-slate-600">{service.description}</p>
-                    </div>
-                    <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+                  <div className="flex items-start justify-between gap-3">
+                    <h2 className="min-w-0 font-semibold text-[var(--color-ink)]">
+                      {service.name}
+                    </h2>
+                    <span className="shrink-0 rounded-full bg-[rgba(255,250,244,0.95)] px-3 py-1 text-xs font-semibold text-[var(--color-muted)]">
                       {service.durationMinutes} мин
                     </span>
                   </div>
-                  <div className="mt-5 flex items-center justify-between gap-3">
-                    <p className="font-semibold text-slate-950">
+
+                  <p className="mt-3 min-h-[52px] text-sm text-[var(--color-muted)]">
+                    {service.description}
+                  </p>
+
+                  <div className="mt-auto flex items-end justify-between gap-4 pt-6">
+                    <p className="font-semibold text-[var(--color-ink)]">
                       {formatCurrency(service.price)}
                     </p>
                     <Link
                       href={`/booking?service=${service.id}`}
-                      className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                      className="accent-button inline-flex min-w-[148px] items-center justify-center self-end rounded-full px-5 py-2.5 text-sm font-semibold transition"
                     >
                       Записаться
                     </Link>

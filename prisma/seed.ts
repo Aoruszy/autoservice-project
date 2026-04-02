@@ -11,6 +11,11 @@ function dayStart(base: Date) {
 }
 
 async function main() {
+  await prisma.bookingReview.deleteMany();
+  await prisma.analyticsEvent.deleteMany();
+  await prisma.auditLog.deleteMany();
+  await prisma.contactLead.deleteMany();
+  await prisma.rateLimitBucket.deleteMany();
   await prisma.notification.deleteMany();
   await prisma.bookingService.deleteMany();
   await prisma.booking.deleteMany();
@@ -173,12 +178,13 @@ async function main() {
       year: 2018,
       licensePlate: "A123BC39",
       vin: "JTNB11HK603123456",
-      engineType: "Бензин 2.5",
+      engineType: "Бензиновый",
     },
   });
 
   const upcomingDate = addDays(dayStart(new Date()), 2);
   const completedDate = addDays(dayStart(new Date()), -7);
+  const secondCompletedDate = addDays(dayStart(new Date()), -20);
 
   const upcomingBooking = await prisma.booking.create({
     data: {
@@ -209,7 +215,7 @@ async function main() {
     },
   });
 
-  await prisma.booking.create({
+  const completedBooking = await prisma.booking.create({
     data: {
       userId: client.id,
       carId: clientCar.id,
@@ -227,6 +233,40 @@ async function main() {
             serviceId: services[2].id,
             price: services[2].price,
             durationMinutes: services[2].durationMinutes,
+          },
+        ],
+      },
+    },
+  });
+
+  await prisma.bookingReview.create({
+    data: {
+      bookingId: completedBooking.id,
+      userId: client.id,
+      carId: clientCar.id,
+      rating: 5,
+      comment: "Работы выполнили вовремя, мастер все объяснил и дал рекомендации.",
+    },
+  });
+
+  await prisma.booking.create({
+    data: {
+      userId: client.id,
+      carId: clientCar.id,
+      employeeId: employeeOne.id,
+      bookingDate: secondCompletedDate,
+      startTime: "11:00",
+      endTime: "12:00",
+      totalPrice: services[1].price,
+      totalDuration: services[1].durationMinutes,
+      status: BookingStatus.COMPLETED,
+      comment: "Плановая диагностика перед дальней поездкой.",
+      bookingServices: {
+        create: [
+          {
+            serviceId: services[1].id,
+            price: services[1].price,
+            durationMinutes: services[1].durationMinutes,
           },
         ],
       },

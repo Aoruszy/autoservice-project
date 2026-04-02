@@ -16,6 +16,7 @@ export default async function DashboardPage() {
         include: {
           car: true,
           employee: true,
+          review: true,
           bookingServices: {
             include: {
               service: true,
@@ -36,8 +37,8 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-16 pt-12 md:px-6">
-      <section className="max-w-3xl">
+    <div className="page-shell">
+      <section className="page-hero max-w-4xl">
         <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Личный кабинет</p>
         <h1 className="mt-4 font-[family:var(--font-display)] text-5xl text-slate-950">
           Управляйте автомобилями, записями и уведомлениями

@@ -29,15 +29,17 @@ export default async function BookingPage({ searchParams }: PageProps) {
       : [];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-16 pt-12 md:px-6">
-      <section className="max-w-3xl">
-        <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Онлайн-запись</p>
-        <h1 className="mt-4 font-[family:var(--font-display)] text-5xl text-slate-950">
-          Пошаговое бронирование без звонка администратору
+    <div className="page-shell">
+      <section className="page-hero max-w-4xl">
+        <p className="eyebrow text-sm uppercase tracking-[0.24em]">
+          Онлайн-запись
+        </p>
+        <h1 className="mt-4 font-[family:var(--font-display)] text-5xl text-[var(--color-ink)]">
+          Выберите услугу, дату и удобное время визита
         </h1>
-        <p className="mt-4 text-lg text-slate-600">
-          Слоты формируются автоматически по графику, длительности услуг и
-          занятости мастеров. Двойное бронирование исключено.
+        <p className="mt-4 text-lg leading-8 text-[var(--color-muted)]">
+          Покажем доступные окна записи, примерную длительность работ и итоговую
+          стоимость еще до подтверждения визита.
         </p>
       </section>
 

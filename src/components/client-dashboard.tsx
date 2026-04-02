@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { BookingStatus } from "@prisma/client";
+import { engineTypeOptions, translateNotificationText } from "@/lib/constants";
 import { formatCurrency, formatDate, fullNameCar } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
 
@@ -27,6 +28,11 @@ type BookingItem = {
   comment: string | null;
   car: CarItem;
   employee: { name: string } | null;
+  review: {
+    rating: number;
+    comment: string | null;
+    createdAt: string | Date;
+  } | null;
   bookingServices: Array<{
     id: string;
     service: { name: string };
@@ -47,6 +53,15 @@ type UserItem = {
   createdAt: string | Date;
 };
 
+type CarFormState = {
+  brand: string;
+  model: string;
+  year: number;
+  licensePlate: string;
+  vin: string;
+  engineType: string;
+};
+
 type Props = {
   user: UserItem;
   cars: CarItem[];
@@ -54,13 +69,13 @@ type Props = {
   notifications: NotificationItem[];
 };
 
-const emptyCar = {
+const emptyCar: CarFormState = {
   brand: "",
   model: "",
   year: new Date().getFullYear(),
   licensePlate: "",
   vin: "",
-  engineType: "",
+  engineType: engineTypeOptions[0],
 };
 
 export function ClientDashboard({ user, cars, bookings, notifications }: Props) {
@@ -72,6 +87,9 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
   });
   const [carForm, setCarForm] = useState(emptyCar);
   const [editingCarId, setEditingCarId] = useState<string | null>(null);
+  const [reviewDrafts, setReviewDrafts] = useState<
+    Record<string, { rating: number; comment: string }>
+  >({});
   const [feedback, setFeedback] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -82,6 +100,7 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
     (booking) =>
       !["NEW", "CONFIRMED", "IN_PROGRESS", "RESCHEDULED"].includes(booking.status),
   );
+  const completedHistory = history.filter((booking) => booking.status === "COMPLETED");
 
   function refreshWithMessage(message: string) {
     setFeedback(message);
@@ -165,17 +184,41 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
     refreshWithMessage("Запись отменена.");
   }
 
+  async function submitReview(bookingId: string) {
+    const draft = reviewDrafts[bookingId] || { rating: 5, comment: "" };
+    const response = await fetch(`/api/bookings/${bookingId}/review`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(draft),
+    });
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      setFeedback(data?.error || "Не удалось отправить отзыв");
+      return;
+    }
+
+    setReviewDrafts((current) => {
+      const next = { ...current };
+      delete next[bookingId];
+      return next;
+    });
+    refreshWithMessage("Спасибо, отзыв сохранен.");
+  }
+
   return (
     <div className="grid gap-8">
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+        <div className="surface-card rounded-[28px] p-6">
           <p className="text-sm uppercase tracking-[0.22em] text-slate-500">Аккаунт</p>
           <p className="mt-3 font-[family:var(--font-display)] text-3xl text-slate-950">
             {user.name}
           </p>
           <p className="mt-2 text-sm text-slate-500">С нами с {formatDate(user.createdAt)}</p>
         </div>
-        <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+        <div className="surface-card rounded-[28px] p-6">
           <p className="text-sm uppercase tracking-[0.22em] text-slate-500">Автомобили</p>
           <p className="mt-3 font-[family:var(--font-display)] text-3xl text-slate-950">
             {cars.length}
@@ -184,7 +227,7 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
             Все машины доступны в форме онлайн-записи
           </p>
         </div>
-        <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+        <div className="surface-card rounded-[28px] p-6">
           <p className="text-sm uppercase tracking-[0.22em] text-slate-500">
             Активные заявки
           </p>
@@ -198,7 +241,7 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
       </div>
 
       {feedback ? (
-        <div className="rounded-2xl border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+        <div className="rounded-2xl border border-[rgba(15,139,141,0.22)] bg-[rgba(15,139,141,0.1)] px-4 py-3 text-sm text-[var(--color-accent-strong)]">
           {feedback}
         </div>
       ) : null}
@@ -207,7 +250,7 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
         <section className="grid gap-8">
           <form
             onSubmit={saveProfile}
-            className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]"
+            className="surface-card rounded-[32px] p-6"
           >
             <div className="flex items-center justify-between gap-4">
               <div>
@@ -221,7 +264,7 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
               <button
                 type="submit"
                 disabled={isPending}
-                className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="accent-button rounded-2xl px-4 py-3 text-sm font-semibold transition"
               >
                 Сохранить
               </button>
@@ -233,7 +276,7 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
                 onChange={(event) =>
                   setProfile((current) => ({ ...current, name: event.target.value }))
                 }
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-300"
+                className="theme-input rounded-2xl px-4 py-3 outline-none"
                 placeholder="Имя"
               />
               <input
@@ -242,7 +285,7 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
                 onChange={(event) =>
                   setProfile((current) => ({ ...current, email: event.target.value }))
                 }
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-300"
+                className="theme-input rounded-2xl px-4 py-3 outline-none"
                 placeholder="Email"
               />
               <input
@@ -250,13 +293,13 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
                 onChange={(event) =>
                   setProfile((current) => ({ ...current, phone: event.target.value }))
                 }
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-300"
+                className="theme-input rounded-2xl px-4 py-3 outline-none"
                 placeholder="Телефон"
               />
             </div>
           </form>
 
-          <section className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+          <section className="surface-card rounded-[32px] p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm uppercase tracking-[0.22em] text-slate-500">
@@ -275,7 +318,7 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
                   onChange={(event) =>
                     setCarForm((current) => ({ ...current, brand: event.target.value }))
                   }
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-300"
+                  className="theme-input rounded-2xl px-4 py-3 outline-none"
                   placeholder="Марка"
                 />
                 <input
@@ -283,7 +326,7 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
                   onChange={(event) =>
                     setCarForm((current) => ({ ...current, model: event.target.value }))
                   }
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-300"
+                  className="theme-input rounded-2xl px-4 py-3 outline-none"
                   placeholder="Модель"
                 />
                 <input
@@ -295,7 +338,7 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
                       year: Number(event.target.value),
                     }))
                   }
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-300"
+                  className="theme-input rounded-2xl px-4 py-3 outline-none"
                   placeholder="Год"
                 />
                 <input
@@ -306,10 +349,10 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
                       licensePlate: event.target.value,
                     }))
                   }
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-300"
+                  className="theme-input rounded-2xl px-4 py-3 outline-none"
                   placeholder="Госномер"
                 />
-                <input
+                <select
                   value={carForm.engineType}
                   onChange={(event) =>
                     setCarForm((current) => ({
@@ -317,22 +360,32 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
                       engineType: event.target.value,
                     }))
                   }
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-300"
-                  placeholder="Тип двигателя"
-                />
+                  className="theme-input rounded-2xl px-4 py-3 outline-none"
+                >
+                  {engineTypeOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                  {!engineTypeOptions.includes(
+                    carForm.engineType as (typeof engineTypeOptions)[number],
+                  ) ? (
+                    <option value={carForm.engineType}>{carForm.engineType}</option>
+                  ) : null}
+                </select>
                 <input
                   value={carForm.vin}
                   onChange={(event) =>
                     setCarForm((current) => ({ ...current, vin: event.target.value }))
                   }
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-300"
+                  className="theme-input rounded-2xl px-4 py-3 outline-none"
                   placeholder="VIN"
                 />
               </div>
               <div className="flex flex-wrap gap-3">
                 <button
                   type="submit"
-                  className="rounded-2xl bg-sky-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-300"
+                  className="accent-button rounded-2xl px-4 py-3 text-sm font-semibold transition"
                 >
                   {editingCarId ? "Сохранить изменения" : "Добавить автомобиль"}
                 </button>
@@ -343,7 +396,7 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
                       setEditingCarId(null);
                       setCarForm(emptyCar);
                     }}
-                    className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300"
+                    className="secondary-button rounded-2xl px-4 py-3 text-sm font-semibold transition"
                   >
                     Отмена
                   </button>
@@ -388,6 +441,60 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
                       </button>
                     </div>
                   </div>
+
+                  <div className="mt-4 rounded-3xl border border-slate-200 bg-white p-4">
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      История обслуживания
+                    </p>
+                    <div className="mt-4 grid gap-3">
+                      {completedHistory.filter((booking) => booking.car.id === car.id).length ? (
+                        completedHistory
+                          .filter((booking) => booking.car.id === car.id)
+                          .map((booking) => (
+                            <div
+                              key={booking.id}
+                              className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                            >
+                              <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                  <p className="font-semibold text-slate-900">
+                                    {formatDate(booking.bookingDate)} • {booking.startTime}
+                                  </p>
+                                  <p className="mt-1 text-sm text-slate-500">
+                                    {booking.bookingServices
+                                      .map((item) => item.service.name)
+                                      .join(", ")}
+                                  </p>
+                                  <p className="mt-1 text-sm text-slate-500">
+                                    Мастер: {booking.employee?.name || "не указан"}
+                                  </p>
+                                </div>
+                                <p className="font-semibold text-slate-900">
+                                  {formatCurrency(booking.totalPrice)}
+                                </p>
+                              </div>
+                              {booking.comment ? (
+                                <p className="mt-3 text-sm text-slate-600">{booking.comment}</p>
+                              ) : null}
+                              {booking.review ? (
+                                <div className="mt-3 rounded-2xl bg-[rgba(31,157,141,0.08)] px-4 py-3 text-sm text-slate-700">
+                                  <p className="font-semibold text-slate-900">
+                                    Отзыв: {booking.review.rating}/5
+                                  </p>
+                                  <p className="mt-1">
+                                    {booking.review.comment || "Клиент оставил оценку без текста."}
+                                  </p>
+                                </div>
+                              ) : null}
+                            </div>
+                          ))
+                      ) : (
+                        <p className="text-sm text-slate-500">
+                          По этой машине еще нет завершенных обслуживаний.
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -395,7 +502,7 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
         </section>
 
         <section className="grid gap-8">
-          <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+          <div className="surface-card rounded-[32px] p-6">
             <p className="text-sm uppercase tracking-[0.22em] text-slate-500">Записи</p>
             <h2 className="mt-2 font-[family:var(--font-display)] text-2xl text-slate-950">
               Предстоящие визиты
@@ -449,8 +556,10 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-            <p className="text-sm uppercase tracking-[0.22em] text-slate-500">История</p>
+          <div className="surface-card rounded-[32px] p-6">
+            <p className="text-sm uppercase tracking-[0.22em] text-slate-500">
+              История и отзывы
+            </p>
             <div className="mt-6 grid gap-3">
               {history.length ? (
                 history.map((booking) => (
@@ -466,9 +575,73 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
                         <p className="mt-1 text-sm text-slate-500">
                           {booking.bookingServices.map((item) => item.service.name).join(", ")}
                         </p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {fullNameCar(booking.car)}
+                        </p>
                       </div>
                       <StatusBadge status={booking.status} />
                     </div>
+                    {booking.status === "COMPLETED" ? (
+                      booking.review ? (
+                        <div className="mt-4 rounded-2xl bg-[rgba(31,157,141,0.08)] px-4 py-3 text-sm text-slate-700">
+                          <p className="font-semibold text-slate-900">
+                            Ваша оценка: {booking.review.rating}/5
+                          </p>
+                          <p className="mt-1">
+                            {booking.review.comment || "Вы оставили оценку без текста."}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+                          <div className="flex flex-wrap gap-2">
+                            {[1, 2, 3, 4, 5].map((rating) => (
+                              <button
+                                key={rating}
+                                type="button"
+                                onClick={() =>
+                                  setReviewDrafts((current) => ({
+                                    ...current,
+                                    [booking.id]: {
+                                      rating,
+                                      comment: current[booking.id]?.comment || "",
+                                    },
+                                  }))
+                                }
+                                className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${
+                                  (reviewDrafts[booking.id]?.rating || 5) === rating
+                                    ? "bg-[var(--color-accent-strong)] text-white"
+                                    : "border border-slate-200 bg-slate-50 text-slate-700"
+                                }`}
+                              >
+                                {rating}
+                              </button>
+                            ))}
+                          </div>
+                          <textarea
+                            rows={3}
+                            value={reviewDrafts[booking.id]?.comment || ""}
+                            onChange={(event) =>
+                              setReviewDrafts((current) => ({
+                                ...current,
+                                [booking.id]: {
+                                  rating: current[booking.id]?.rating || 5,
+                                  comment: event.target.value,
+                                },
+                              }))
+                            }
+                            className="theme-input rounded-2xl px-4 py-3 text-sm outline-none"
+                            placeholder="Как прошел визит? Что понравилось или что можно улучшить"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => submitReview(booking.id)}
+                            className="accent-button rounded-2xl px-4 py-3 text-sm font-semibold transition"
+                          >
+                            Оставить отзыв
+                          </button>
+                        </div>
+                      )
+                    ) : null}
                   </div>
                 ))
               ) : (
@@ -487,7 +660,9 @@ export function ClientDashboard({ user, cars, bookings, notifications }: Props) 
                   key={notification.id}
                   className="rounded-3xl border border-slate-200 bg-slate-50 p-4"
                 >
-                  <p className="text-sm text-slate-800">{notification.text}</p>
+                  <p className="text-sm text-slate-800">
+                    {translateNotificationText(notification.text)}
+                  </p>
                   <p className="mt-2 text-xs uppercase tracking-[0.18em] text-slate-400">
                     {formatDate(notification.createdAt)}
                   </p>

@@ -27,7 +27,7 @@ export default async function EmployeePage() {
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-16 pt-12 md:px-6">
+    <div className="page-shell">
       <EmployeePanel
         employeeName={user.employee.name}
         specialization={user.employee.specialization}

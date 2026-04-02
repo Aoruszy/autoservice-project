@@ -19,12 +19,23 @@ export function AuthPanel() {
   const [isPending, startTransition] = useTransition();
 
   const title = useMemo(
-    () =>
-      mode === "login"
-        ? "Вход в личный кабинет"
-        : "Регистрация клиента",
+    () => (mode === "login" ? "Вход в личный кабинет" : "Регистрация клиента"),
     [mode],
   );
+
+  async function readJsonSafely(response: Response) {
+    const text = await response.text();
+
+    if (!text) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(text) as { error?: string; user?: { role: Parameters<typeof roleHome>[0] } };
+    } catch {
+      return null;
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,10 +56,15 @@ export function AuthPanel() {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const data = await readJsonSafely(response);
 
       if (!response.ok) {
-        setFeedback(data.error || "Не удалось выполнить запрос");
+        setFeedback(data?.error || "Не удалось выполнить запрос");
+        return;
+      }
+
+      if (!data?.user?.role) {
+        setFeedback("Сервер вернул пустой ответ. Попробуйте еще раз.");
         return;
       }
 
@@ -58,17 +74,16 @@ export function AuthPanel() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-      <section className="rounded-[32px] border border-white/10 bg-slate-950 p-8 text-white shadow-[0_30px_80px_rgba(15,23,42,0.35)]">
-        <div className="inline-flex rounded-full border border-sky-400/30 bg-sky-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-sky-200">
+      <section className="dark-card rounded-[32px] border border-white/10 p-8">
+        <div className="inline-flex rounded-full border border-[rgba(167,239,229,0.22)] bg-[rgba(167,239,229,0.08)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-[#a7efe5]">
           {mode === "login" ? "Быстрый вход" : "Новый аккаунт"}
         </div>
         <h1 className="mt-6 font-[family:var(--font-display)] text-4xl font-semibold leading-tight">
           {title}
         </h1>
-        <p className="mt-4 max-w-xl text-sm text-slate-300">
-          После входа клиент получает доступ к автомобилям, статусам заявок и
-          онлайн-записи, а администратор и мастер автоматически попадут в свои
-          рабочие панели.
+        <p className="mt-4 max-w-xl text-sm leading-7 text-[rgba(244,250,255,0.78)]">
+          Записывайтесь онлайн, добавляйте автомобили, следите за статусом
+          записи и храните историю обслуживания в одном кабинете.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 grid gap-4">
@@ -80,7 +95,7 @@ export function AuthPanel() {
                 onChange={(event) =>
                   setForm((current) => ({ ...current, name: event.target.value }))
                 }
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none transition focus:border-sky-300"
+                className="rounded-2xl border border-white/10 bg-white/6 px-4 py-3 outline-none transition focus:border-[rgba(167,239,229,0.36)]"
                 placeholder="Например, Илья Петров"
               />
             </label>
@@ -94,7 +109,7 @@ export function AuthPanel() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, email: event.target.value }))
               }
-              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none transition focus:border-sky-300"
+              className="rounded-2xl border border-white/10 bg-white/6 px-4 py-3 outline-none transition focus:border-[rgba(167,239,229,0.36)]"
               placeholder="you@example.com"
             />
           </label>
@@ -107,7 +122,7 @@ export function AuthPanel() {
                 onChange={(event) =>
                   setForm((current) => ({ ...current, phone: event.target.value }))
                 }
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none transition focus:border-sky-300"
+                className="rounded-2xl border border-white/10 bg-white/6 px-4 py-3 outline-none transition focus:border-[rgba(167,239,229,0.36)]"
                 placeholder="+7 (900) 123-45-67"
               />
             </label>
@@ -121,13 +136,13 @@ export function AuthPanel() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, password: event.target.value }))
               }
-              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none transition focus:border-sky-300"
+              className="rounded-2xl border border-white/10 bg-white/6 px-4 py-3 outline-none transition focus:border-[rgba(167,239,229,0.36)]"
               placeholder="Минимум 6 символов"
             />
           </label>
 
           {feedback ? (
-            <p className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            <p className="rounded-2xl border border-rose-300/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
               {feedback}
             </p>
           ) : null}
@@ -135,7 +150,7 @@ export function AuthPanel() {
           <button
             type="submit"
             disabled={isPending}
-            className="mt-2 rounded-2xl bg-sky-400 px-5 py-3 font-semibold text-slate-950 transition hover:bg-sky-300 disabled:opacity-70"
+            className="accent-button mt-2 rounded-2xl px-5 py-3 font-semibold transition disabled:opacity-70"
           >
             {isPending
               ? "Подождите..."
@@ -146,21 +161,21 @@ export function AuthPanel() {
         </form>
       </section>
 
-      <section className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+      <section className="surface-card rounded-[32px] p-8">
         <div className="grid gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">
-              Демо-доступ
+            <p className="eyebrow text-sm font-semibold uppercase tracking-[0.22em]">
+              Личный кабинет
             </p>
-            <h2 className="mt-3 font-[family:var(--font-display)] text-3xl text-slate-950">
-              Можно тестировать сразу после запуска
+            <h2 className="mt-3 font-[family:var(--font-display)] text-3xl text-[var(--color-ink)]">
+              Все, что нужно клиенту, в одном месте
             </h2>
           </div>
 
-          <div className="space-y-3 rounded-3xl bg-slate-100 p-5 text-sm text-slate-700">
-            <p>`admin@avtoslot.ru` / `Demo12345!`</p>
-            <p>`client@avtoslot.ru` / `Demo12345!`</p>
-            <p>`master1@avtoslot.ru` / `Demo12345!`</p>
+          <div className="space-y-3 rounded-3xl bg-[var(--color-surface-soft)] p-5 text-sm leading-7 text-[var(--color-muted)]">
+            <p>Запись на обслуживание без звонка и ожидания ответа.</p>
+            <p>Хранение автомобилей и истории прошлых визитов.</p>
+            <p>Статусы записи и вся информация о визите в одном кабинете.</p>
           </div>
 
           <div className="grid gap-3">
@@ -172,8 +187,8 @@ export function AuthPanel() {
               }}
               className={`rounded-2xl px-4 py-3 text-left text-sm font-semibold transition ${
                 mode === "login"
-                  ? "bg-slate-950 text-white"
-                  : "border border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                  ? "dark-card border border-white/10"
+                  : "secondary-button"
               }`}
             >
               Уже есть аккаунт
@@ -186,8 +201,8 @@ export function AuthPanel() {
               }}
               className={`rounded-2xl px-4 py-3 text-left text-sm font-semibold transition ${
                 mode === "register"
-                  ? "bg-slate-950 text-white"
-                  : "border border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                  ? "dark-card border border-white/10"
+                  : "secondary-button"
               }`}
             >
               Я новый клиент

@@ -34,6 +34,7 @@ type BookingItem = {
   user: { name: string; phone: string };
   car: { brand: string; model: string; licensePlate: string };
   employee: { id: string; name: string } | null;
+  review: { rating: number; comment: string | null } | null;
   bookingServices: Array<{ id: string; service: { name: string } }>;
 };
 
@@ -62,6 +63,24 @@ type WorkingHourItem = {
   isWorkingDay: boolean;
 };
 
+type ReviewItem = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string | Date;
+  user: {
+    name: string;
+  };
+  car: {
+    brand: string;
+    model: string;
+    year: number;
+  };
+  booking: {
+    bookingDate: string | Date;
+  };
+};
+
 type Props = {
   categories: CategoryItem[];
   services: ServiceItem[];
@@ -74,7 +93,14 @@ type Props = {
     completedBookings: number;
     cancelledBookings: number;
     revenue: number;
+    averageRating: number;
+    reviewCount: number;
   };
+  statusBreakdown: Array<{ label: string; value: number }>;
+  revenueByMonth: Array<{ label: string; value: number }>;
+  topServices: Array<{ label: string; value: number }>;
+  ratingDistribution: Array<{ label: string; value: number }>;
+  recentReviews: ReviewItem[];
 };
 
 const defaultService = {
@@ -96,6 +122,11 @@ export function AdminPanel({
   clients,
   workingHours,
   stats,
+  statusBreakdown,
+  revenueByMonth,
+  topServices,
+  ratingDistribution,
+  recentReviews,
 }: Props) {
   const router = useRouter();
   const [feedback, setFeedback] = useState("");
@@ -224,22 +255,53 @@ export function AdminPanel({
 
   return (
     <div className="grid gap-8">
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
         <StatCard label="Все заявки" value={stats.totalBookings.toString()} />
         <StatCard label="Завершено" value={stats.completedBookings.toString()} />
         <StatCard label="Отмены" value={stats.cancelledBookings.toString()} />
         <StatCard label="Выручка" value={formatCurrency(stats.revenue)} />
+        <StatCard
+          label="Средняя оценка"
+          value={stats.reviewCount ? `${stats.averageRating.toFixed(1)} / 5` : "Нет отзывов"}
+        />
       </div>
 
       {feedback ? (
-        <div className="rounded-2xl border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+        <div className="rounded-2xl border border-[rgba(15,139,141,0.22)] bg-[rgba(15,139,141,0.1)] px-4 py-3 text-sm text-[var(--color-accent-strong)]">
           {feedback}
         </div>
       ) : null}
 
+      <div className="grid gap-6 xl:grid-cols-2">
+        <ChartCard
+          title="Структура заявок"
+          subtitle="Текущее распределение по статусам"
+          items={statusBreakdown}
+          valueFormatter={(value) => `${value}`}
+        />
+        <ChartCard
+          title="Выручка по месяцам"
+          subtitle="Последние шесть месяцев по завершенным работам"
+          items={revenueByMonth}
+          valueFormatter={(value) => formatCurrency(value)}
+        />
+        <ChartCard
+          title="Популярные услуги"
+          subtitle="Что чаще всего доходит до завершения"
+          items={topServices}
+          valueFormatter={(value) => `${value} заказ${value === 1 ? "" : value < 5 ? "а" : "ов"}`}
+        />
+        <ChartCard
+          title="Оценки клиентов"
+          subtitle="Распределение отзывов по рейтингу"
+          items={ratingDistribution}
+          valueFormatter={(value) => `${value}`}
+        />
+      </div>
+
       <div className="grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
         <section className="grid gap-8">
-          <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+          <div className="surface-card rounded-[32px] p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm uppercase tracking-[0.22em] text-slate-500">
@@ -255,7 +317,7 @@ export function AdminPanel({
                   onChange={(event) =>
                     setFilters((current) => ({ ...current, search: event.target.value }))
                   }
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-sky-300"
+                  className="theme-input rounded-2xl px-4 py-3 text-sm outline-none"
                   placeholder="Клиент, номер, услуга"
                 />
                 <select
@@ -263,7 +325,7 @@ export function AdminPanel({
                   onChange={(event) =>
                     setFilters((current) => ({ ...current, status: event.target.value }))
                   }
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-sky-300"
+                  className="theme-input rounded-2xl px-4 py-3 text-sm outline-none"
                 >
                   <option value="ALL">Все статусы</option>
                   <option value="NEW">Новая</option>
@@ -316,7 +378,7 @@ export function AdminPanel({
                             [booking.id]: event.target.value as BookingStatus,
                           }))
                         }
-                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-sky-300"
+                        className="theme-input rounded-2xl bg-[rgba(255,250,244,0.94)] px-4 py-3 text-sm outline-none"
                       >
                         <option value="NEW">Новая</option>
                         <option value="CONFIRMED">Подтверждена</option>
@@ -334,13 +396,13 @@ export function AdminPanel({
                             [booking.id]: event.target.value,
                           }))
                         }
-                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-sky-300"
+                        className="theme-input rounded-2xl bg-[rgba(255,250,244,0.94)] px-4 py-3 text-sm outline-none"
                         placeholder="Комментарий администратора"
                       />
                       <button
                         type="button"
                         onClick={() => handleStatusUpdate(booking.id)}
-                        className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        className="accent-button rounded-2xl px-4 py-3 text-sm font-semibold transition"
                       >
                         Обновить статус
                       </button>
@@ -363,7 +425,7 @@ export function AdminPanel({
                               },
                             }))
                           }
-                          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-sky-300"
+                          className="theme-input rounded-2xl px-4 py-3 text-sm outline-none"
                         />
                         <input
                           type="time"
@@ -377,7 +439,7 @@ export function AdminPanel({
                               },
                             }))
                           }
-                          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-sky-300"
+                          className="theme-input rounded-2xl px-4 py-3 text-sm outline-none"
                         />
                       </div>
                       <button
@@ -394,7 +456,7 @@ export function AdminPanel({
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+          <div className="surface-card rounded-[32px] p-6">
             <p className="text-sm uppercase tracking-[0.22em] text-slate-500">Клиенты</p>
             <div className="mt-6 grid gap-3 md:grid-cols-2">
               {clients.map((client) => (
@@ -409,12 +471,54 @@ export function AdminPanel({
               ))}
             </div>
           </div>
+
+          <div className="surface-card rounded-[32px] p-6">
+            <p className="text-sm uppercase tracking-[0.22em] text-slate-500">
+              Отзывы клиентов
+            </p>
+            <h2 className="mt-2 font-[family:var(--font-display)] text-2xl text-slate-950">
+              Последние оценки по выполненным работам
+            </h2>
+
+            <div className="mt-6 grid gap-3">
+              {recentReviews.length ? (
+                recentReviews.map((review) => (
+                  <div
+                    key={review.id}
+                    className="rounded-3xl border border-slate-200 bg-slate-50 p-4"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-slate-950">{review.user.name}</p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {review.car.brand} {review.car.model}, {review.car.year}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                        {review.rating}/5
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm text-slate-600">
+                      {review.comment || "Клиент оставил оценку без текста."}
+                    </p>
+                    <p className="mt-2 text-sm text-slate-500">
+                      {formatDate(review.booking.bookingDate)}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-slate-500">
+                  Пока нет отзывов. Они появятся после завершенных работ и оценок от клиентов.
+                </p>
+              )}
+            </div>
+          </div>
         </section>
 
         <section className="grid gap-8">
           <form
             onSubmit={submitService}
-            className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]"
+            className="surface-card rounded-[32px] p-6"
           >
             <p className="text-sm uppercase tracking-[0.22em] text-slate-500">Услуги</p>
             <h2 className="mt-2 font-[family:var(--font-display)] text-2xl text-slate-950">
@@ -427,7 +531,7 @@ export function AdminPanel({
                 onChange={(event) =>
                   setServiceForm((current) => ({ ...current, categoryId: event.target.value }))
                 }
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-300"
+                className="theme-input rounded-2xl px-4 py-3 outline-none"
               >
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
@@ -440,7 +544,7 @@ export function AdminPanel({
                 onChange={(event) =>
                   setServiceForm((current) => ({ ...current, name: event.target.value }))
                 }
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-300"
+                className="theme-input rounded-2xl px-4 py-3 outline-none"
                 placeholder="Название услуги"
               />
               <textarea
@@ -452,7 +556,7 @@ export function AdminPanel({
                   }))
                 }
                 rows={4}
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-300"
+                className="theme-input rounded-2xl px-4 py-3 outline-none"
                 placeholder="Описание услуги"
               />
               <div className="grid gap-3 md:grid-cols-2">
@@ -465,7 +569,7 @@ export function AdminPanel({
                       price: Number(event.target.value),
                     }))
                   }
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-300"
+                  className="theme-input rounded-2xl px-4 py-3 outline-none"
                   placeholder="Цена"
                 />
                 <input
@@ -477,11 +581,11 @@ export function AdminPanel({
                       durationMinutes: Number(event.target.value),
                     }))
                   }
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-300"
+                  className="theme-input rounded-2xl px-4 py-3 outline-none"
                   placeholder="Длительность"
                 />
               </div>
-              <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              <label className="theme-input flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-[var(--color-ink)]">
                 <input
                   type="checkbox"
                   checked={serviceForm.isActive}
@@ -497,7 +601,7 @@ export function AdminPanel({
               <div className="flex flex-wrap gap-3">
                 <button
                   type="submit"
-                  className="rounded-2xl bg-sky-400 px-4 py-3 text-sm font-semibold text-slate-950"
+                  className="accent-button rounded-2xl px-4 py-3 text-sm font-semibold"
                 >
                   {editingServiceId ? "Сохранить услугу" : "Добавить услугу"}
                 </button>
@@ -508,7 +612,7 @@ export function AdminPanel({
                       setEditingServiceId(null);
                       setServiceForm({ ...defaultService, categoryId: categories[0]?.id || "" });
                     }}
-                    className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700"
+                    className="secondary-button rounded-2xl px-4 py-3 text-sm font-semibold"
                   >
                     Отмена
                   </button>
@@ -553,7 +657,7 @@ export function AdminPanel({
                             isActive: service.isActive,
                           });
                         }}
-                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700"
+                        className="secondary-button rounded-xl px-3 py-2 text-sm font-semibold"
                       >
                         Изменить
                       </button>
@@ -571,7 +675,7 @@ export function AdminPanel({
             </div>
           </form>
 
-          <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+          <div className="surface-card rounded-[32px] p-6">
             <p className="text-sm uppercase tracking-[0.22em] text-slate-500">
               Мастера и график
             </p>
@@ -597,6 +701,7 @@ export function AdminPanel({
               ))}
             </div>
           </div>
+
         </section>
       </div>
     </div>
@@ -605,11 +710,58 @@ export function AdminPanel({
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+    <div className="surface-card rounded-[28px] p-6">
       <p className="text-sm uppercase tracking-[0.22em] text-slate-500">{label}</p>
       <p className="mt-3 font-[family:var(--font-display)] text-3xl text-slate-950">
         {value}
       </p>
+    </div>
+  );
+}
+
+function ChartCard({
+  title,
+  subtitle,
+  items,
+  valueFormatter,
+}: {
+  title: string;
+  subtitle: string;
+  items: Array<{ label: string; value: number }>;
+  valueFormatter: (value: number) => string;
+}) {
+  const maxValue = Math.max(...items.map((item) => item.value), 1);
+
+  return (
+    <div className="surface-card rounded-[32px] p-6">
+      <p className="text-sm uppercase tracking-[0.22em] text-slate-500">{title}</p>
+      <p className="mt-2 text-sm text-slate-500">{subtitle}</p>
+
+      <div className="mt-6 grid gap-4">
+        {items.length ? (
+          items.map((item) => (
+            <div key={item.label} className="grid gap-2">
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <span className="font-medium text-slate-700">{item.label}</span>
+                <span className="text-slate-500">{valueFormatter(item.value)}</span>
+              </div>
+              <div className="h-3 overflow-hidden rounded-full bg-[rgba(20,40,61,0.08)]">
+                <div
+                  className="h-full rounded-full bg-[linear-gradient(90deg,#1f9d8d_0%,#34c3b0_100%)]"
+                  style={{
+                    width:
+                      item.value === 0
+                        ? "0%"
+                        : `${Math.max(12, (item.value / maxValue) * 100)}%`,
+                  }}
+                />
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-sm text-slate-500">Пока недостаточно данных для графика.</p>
+        )}
+      </div>
     </div>
   );
 }

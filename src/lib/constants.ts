@@ -2,6 +2,14 @@ import type { BookingStatus, UserRole } from "@prisma/client";
 
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "AvtoSlot";
 
+export const engineTypeOptions = [
+  "Бензиновый",
+  "Дизельный",
+  "Гибрид",
+  "Электрический",
+  "Газ/бензин",
+] as const;
+
 export const publicNavigation = [
   { href: "/", label: "Главная" },
   { href: "/services", label: "Услуги" },
@@ -53,6 +61,17 @@ export const activeBookingStatuses: BookingStatus[] = [
   "IN_PROGRESS",
   "RESCHEDULED",
 ];
+
+export function getStatusLabel(status: BookingStatus): string {
+  return statusMeta[status].label;
+}
+
+export function translateNotificationText(text: string): string {
+  return Object.entries(statusMeta).reduce((result, [status, meta]) => {
+    const pattern = new RegExp(`\\b${status}\\b`, "g");
+    return result.replace(pattern, meta.label);
+  }, text);
+}
 
 export const dashboardQuickStats = [
   {

@@ -23,7 +23,7 @@ export function LogoutButton() {
             window.location.href = "/";
           })
         }
-        className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/10 disabled:opacity-60"
+        className="rounded-full border border-white/25 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/12 disabled:opacity-60"
         disabled={isPending}
       >
         {isPending ? "Выходим..." : "Выйти"}

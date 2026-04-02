@@ -33,7 +33,11 @@ export async function PUT(request: NextRequest, { params }: Context) {
   const car = await prisma.car.update({
     where: { id },
     data: {
-      ...parsed.data,
+      brand: parsed.data.brand,
+      model: parsed.data.model,
+      year: parsed.data.year,
+      licensePlate: parsed.data.licensePlate,
+      engineType: parsed.data.engineType,
       vin: parsed.data.vin || null,
     },
   });

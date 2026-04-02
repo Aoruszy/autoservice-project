@@ -1,7 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg: #eef3f8;
+  --color-bg: #f3efe8;
+  --color-surface: rgba(255, 250, 244, 0.9);
+  --color-surface-strong: #fffaf4;
+  --color-surface-soft: #f6efe5;
+  --color-border: rgba(25, 49, 74, 0.1);
+  --color-ink: #112033;
+  --color-muted: #607089;
+  --color-accent: #0f8b8d;
+  --color-accent-strong: #0d6f72;
+  --color-accent-soft: rgba(15, 139, 141, 0.12);
+  --color-panel: #10263b;
+  --color-panel-strong: #17324a;
 }
 
 @theme inline {
@@ -21,8 +32,108 @@ body {
   margin: 0;
   font-family: var(--font-sans), sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 22%),
-    linear-gradient(180deg, #eef3f8 0%, #f9fbfd 34%, #eef3f8 100%);
+    radial-gradient(circle at top left, rgba(15, 139, 141, 0.1), transparent 24%),
+    radial-gradient(circle at top right, rgba(191, 120, 78, 0.08), transparent 20%),
+    linear-gradient(180deg, #f6f1ea 0%, #f9f5ef 36%, #f2ece4 100%);
+}
+
+.page-shell {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 80rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 7rem;
+  padding-bottom: 4rem;
+}
+
+.page-shell > :first-child {
+  margin-top: 1.75rem;
+}
+
+.page-hero {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 2rem;
+  padding: 2rem;
+  box-shadow: 0 24px 70px rgba(17, 32, 51, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.surface-card {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-strong);
+  box-shadow: 0 20px 60px rgba(17, 32, 51, 0.08);
+}
+
+.surface-soft {
+  background: var(--color-surface-soft);
+}
+
+.dark-card {
+  color: #f7fbff;
+  background:
+    radial-gradient(circle at top right, rgba(31, 157, 141, 0.12), transparent 30%),
+    linear-gradient(180deg, var(--color-panel-strong) 0%, var(--color-panel) 100%);
+  box-shadow: 0 26px 70px rgba(16, 38, 59, 0.28);
+}
+
+.eyebrow {
+  color: var(--color-accent-strong);
+}
+
+.accent-button {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
+  box-shadow: 0 16px 34px rgba(15, 139, 141, 0.22);
+}
+
+.accent-button:hover {
+  filter: brightness(1.05);
+}
+
+.secondary-button {
+  color: var(--color-ink);
+  border: 1px solid rgba(25, 49, 74, 0.12);
+  background: rgba(255, 250, 244, 0.94);
+}
+
+.secondary-button:hover {
+  background: #ffffff;
+  border-color: rgba(25, 49, 74, 0.18);
+}
+
+.theme-input {
+  border: 1px solid rgba(25, 49, 74, 0.12);
+  background: rgba(246, 239, 229, 0.72);
+}
+
+.theme-input:focus {
+  border-color: rgba(15, 139, 141, 0.45);
+  box-shadow: 0 0 0 3px rgba(15, 139, 141, 0.12);
+}
+
+.theme-chip {
+  border: 1px solid rgba(25, 49, 74, 0.1);
+  background: rgba(246, 239, 229, 0.76);
+  color: var(--color-muted);
+}
+
+@media (min-width: 768px) {
+  .page-shell {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 8.5rem;
+    padding-bottom: 4rem;
+  }
+
+  .page-shell > :first-child {
+    margin-top: 2.5rem;
+  }
+
+  .page-hero {
+    padding: 2.5rem;
+  }
 }
 
 a {

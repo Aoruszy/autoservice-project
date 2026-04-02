@@ -33,7 +33,11 @@ model User {
   employee     Employee?
   cars         Car[]
   bookings     Booking[]
+  bookingReviews BookingReview[]
   notifications Notification[]
+  analyticsEvents AnalyticsEvent[]
+  auditLogs     AuditLog[]
+  contactLeads  ContactLead[]
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 }
@@ -49,6 +53,7 @@ model Car {
   vin          String?
   engineType   String
   bookings     Booking[]
+  bookingReviews BookingReview[]
   createdAt    DateTime  @default(now())
 
   @@index([userId])
@@ -106,6 +111,7 @@ model Booking {
   status        BookingStatus   @default(NEW)
   comment       String?
   bookingServices BookingService[]
+  review        BookingReview?
   notifications Notification[]
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -127,6 +133,24 @@ model BookingService {
 
   @@index([bookingId])
   @@index([serviceId])
+}
+
+model BookingReview {
+  id        String   @id @default(cuid())
+  bookingId String   @unique
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  carId     String
+  car       Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([carId, createdAt])
+  @@index([rating, createdAt])
 }
 
 model WorkingHours {
@@ -162,5 +186,72 @@ model Notification {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
+  @@index([userId, createdAt])
+}
+
+model RateLimitBucket {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  action      String
+  identifier  String
+  windowStart DateTime
+  count       Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([action, identifier, windowStart])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  level     String   @default("info")
+  action    String
+  route     String?
+  method    String?
+  ip        String?
+  userAgent String?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([action, createdAt])
+  @@index([userId, createdAt])
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  type      String
+  path      String
+  ip        String?
+  userAgent String?
+  sessionId String?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([type, createdAt])
+  @@index([path, createdAt])
+  @@index([userId, createdAt])
+}
+
+model ContactLead {
+  id            String   @id @default(cuid())
+  name          String
+  contact       String
+  message       String
+  honeypot      String?
+  sourcePage    String?
+  clientIp      String?
+  userAgent     String?
+  submitDelayMs Int?
+  status        String   @default("NEW")
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([status, createdAt])
   @@index([userId, createdAt])
 }

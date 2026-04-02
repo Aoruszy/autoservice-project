@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
-import { BookingStatus } from "@prisma/client";
 import { requireApiUser } from "@/lib/api";
-import { createNotification, statusAllowsCancellation } from "@/lib/booking";
+import { createNotification } from "@/lib/booking";
 import { createAuditLog } from "@/lib/observability";
 import { prisma } from "@/lib/prisma";
 import {
@@ -10,40 +9,33 @@ import {
   createRateLimitErrorResponse,
   rateLimitByRequest,
 } from "@/lib/security";
-import { cancelBookingSchema } from "@/lib/validators";
+import { bookingReviewSchema } from "@/lib/validators";
 
 type Context = {
   params: Promise<{ id: string }>;
 };
 
-export async function PUT(request: NextRequest, { params }: Context) {
+export async function POST(request: NextRequest, { params }: Context) {
   const auth = await requireApiUser(request, ["CLIENT"]);
   if (auth.error) return auth.error;
 
   const rateLimit = await rateLimitByRequest(request, {
-    action: "booking:cancel",
+    action: "booking:review",
     keyParts: [auth.user.id],
     limit: 10,
-    windowMs: 30 * 60 * 1000,
+    windowMs: 60 * 60 * 1000,
   });
 
   if (!rateLimit.allowed) {
-    await createAuditLog({
-      action: "booking.cancel.rate_limited",
-      request,
-      userId: auth.user.id,
-      level: "warn",
-    });
-
     return createRateLimitErrorResponse(
       rateLimit,
-      "Слишком много запросов на отмену. Попробуйте позже.",
+      "Слишком много попыток отправить отзыв. Попробуйте позже.",
     );
   }
 
   const { id } = await params;
   const body = await request.json().catch(() => ({}));
-  const parsed = cancelBookingSchema.safeParse(body);
+  const parsed = bookingReviewSchema.safeParse(body);
 
   if (!parsed.success) {
     return applyRateLimitHeaders(
@@ -59,42 +51,43 @@ export async function PUT(request: NextRequest, { params }: Context) {
     where: {
       id,
       userId: auth.user.id,
+      status: "COMPLETED",
+    },
+    include: {
+      review: true,
     },
   });
 
   if (!booking) {
     return applyRateLimitHeaders(
-      NextResponse.json({ error: "Запись не найдена" }, { status: 404 }),
+      NextResponse.json(
+        { error: "Отзыв можно оставить только после завершенной работы" },
+        { status: 404 },
+      ),
       rateLimit,
     );
   }
 
-  if (!statusAllowsCancellation(booking.status)) {
+  if (booking.review) {
     return applyRateLimitHeaders(
       NextResponse.json(
-        { error: "Эту запись уже нельзя отменить" },
+        { error: "Отзыв по этой записи уже оставлен" },
         { status: 409 },
       ),
       rateLimit,
     );
   }
 
-  const updated = await prisma.$transaction(async (tx) => {
-    const result = await tx.booking.update({
-      where: { id },
+  const review = await prisma.$transaction(async (tx) => {
+    const created = await tx.bookingReview.create({
       data: {
-        status: BookingStatus.CANCELLED_BY_CLIENT,
-        comment: [booking.comment, parsed.data.reason].filter(Boolean).join("\n"),
+        bookingId: booking.id,
+        userId: auth.user.id,
+        carId: booking.carId,
+        rating: parsed.data.rating,
+        comment: parsed.data.comment || null,
       },
     });
-
-    await createNotification(
-      auth.user.id,
-      "booking_cancelled",
-      "Вы отменили запись. Слот снова доступен для бронирования.",
-      id,
-      tx,
-    );
 
     const admins = await tx.user.findMany({
       where: { role: "ADMIN" },
@@ -104,28 +97,28 @@ export async function PUT(request: NextRequest, { params }: Context) {
     for (const admin of admins) {
       await createNotification(
         admin.id,
-        "booking_cancelled",
-        `Клиент ${auth.user.name} отменил запись.`,
-        id,
+        "new_review",
+        `Клиент оставил отзыв на ${parsed.data.rating}/5 по завершенной записи.`,
+        booking.id,
         tx,
       );
     }
 
     await createAuditLog(
       {
-        action: "booking.cancelled_by_client",
+        action: "booking.review_created",
         request,
         userId: auth.user.id,
         metadata: {
-          bookingId: id,
-          reason: parsed.data.reason || null,
+          bookingId: booking.id,
+          rating: parsed.data.rating,
         } as Prisma.InputJsonValue,
       },
       tx,
     );
 
-    return result;
+    return created;
   });
 
-  return applyRateLimitHeaders(NextResponse.json(updated), rateLimit);
+  return applyRateLimitHeaders(NextResponse.json(review, { status: 201 }), rateLimit);
 }
