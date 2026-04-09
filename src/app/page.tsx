@@ -33,36 +33,36 @@ export default async function HomePage() {
   return (
     <div className="page-shell">
       <section>
-        <div className="grid gap-8 rounded-[40px] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[0_28px_90px_rgba(17,32,51,0.1)] backdrop-blur md:p-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:p-10">
+        <div className="grid gap-6 rounded-[32px] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[0_28px_90px_rgba(17,32,51,0.1)] backdrop-blur sm:gap-8 sm:p-6 md:rounded-[40px] md:p-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:p-10">
           <div className="max-w-3xl">
             <div className="eyebrow inline-flex rounded-full border border-[rgba(15,139,141,0.18)] bg-[rgba(15,139,141,0.08)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em]">
               Запись онлайн 24/7
             </div>
-            <h1 className="mt-6 font-[family:var(--font-display)] text-4xl font-semibold leading-[1.02] text-[var(--color-ink)] md:text-6xl">
+            <h1 className="mt-5 font-[family:var(--font-display)] text-[clamp(2.75rem,11vw,4.6rem)] font-semibold leading-[1.02] tracking-[-0.05em] text-[var(--color-ink)] md:mt-6 md:text-6xl md:tracking-normal">
               Обслуживание автомобиля без очередей и лишних звонков
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--color-muted)]">
+            <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--color-muted)] sm:text-lg sm:leading-8 md:mt-6">
               Выберите услугу, дату и удобное время за пару минут. Мы заранее
               подготовим заказ, а вы будете видеть статус записи в личном
               кабинете.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-4">
+            <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">
               <Link
                 href="/booking"
-                className="accent-button rounded-full px-6 py-4 text-sm font-semibold transition"
+                className="accent-button rounded-full px-6 py-4 text-center text-sm font-semibold transition sm:w-auto"
               >
                 Записаться онлайн
               </Link>
               <Link
                 href="/services"
-                className="secondary-button rounded-full px-6 py-4 text-sm font-semibold transition"
+                className="secondary-button rounded-full px-6 py-4 text-center text-sm font-semibold transition sm:w-auto"
               >
                 Смотреть услуги
               </Link>
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-7 flex flex-wrap gap-3 sm:mt-8">
               {[
                 "Пн-Пт: 09:00 - 19:00",
                 "Сб: 10:00 - 16:00",
@@ -78,13 +78,13 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="dark-card rounded-[32px] p-6">
+          <div className="dark-card rounded-[28px] p-5 sm:rounded-[32px] sm:p-6">
             <div className="grid gap-4">
               <div>
                 <p className="text-sm uppercase tracking-[0.24em] text-[#a7efe5]">
                   Сегодня в сервисе
                 </p>
-                <h2 className="mt-3 font-[family:var(--font-display)] text-3xl leading-tight">
+                <h2 className="mt-3 font-[family:var(--font-display)] text-[2.15rem] leading-tight sm:text-3xl">
                   Быстрая запись и понятные условия
                 </h2>
               </div>
@@ -143,10 +143,10 @@ export default async function HomePage() {
         ].map((item) => (
           <div
             key={item.title}
-            className="surface-card rounded-[28px] p-6"
+            className="surface-card rounded-[24px] p-5 sm:rounded-[28px] sm:p-6"
           >
             <item.icon className="h-8 w-8 text-[var(--color-accent)]" />
-            <h2 className="mt-5 font-[family:var(--font-display)] text-2xl text-[var(--color-ink)]">
+            <h2 className="mt-5 font-[family:var(--font-display)] text-[1.7rem] text-[var(--color-ink)] sm:text-2xl">
               {item.title}
             </h2>
             <p className="mt-3 text-sm leading-6 text-[var(--color-muted)]">{item.text}</p>
