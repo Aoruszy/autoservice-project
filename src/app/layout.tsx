@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { Exo_2, Manrope } from "next/font/google";
 import "./globals.css";
@@ -23,11 +23,11 @@ const bodyFont = Manrope({
 
 export const metadata: Metadata = {
   title: {
-    default: `${APP_NAME} | Онлайн-запись в автосервис`,
+    default: `${APP_NAME} | РћРЅР»Р°Р№РЅ-Р·Р°РїРёСЃСЊ РІ Р°РІС‚РѕСЃРµСЂРІРёСЃ`,
     template: `%s | ${APP_NAME}`,
   },
   description:
-    "Онлайн-запись в автосервис, каталог услуг, история обслуживания автомобиля и удобный личный кабинет клиента.",
+    "РћРЅР»Р°Р№РЅ-Р·Р°РїРёСЃСЊ РІ Р°РІС‚РѕСЃРµСЂРІРёСЃ, РєР°С‚Р°Р»РѕРі СѓСЃР»СѓРі, РёСЃС‚РѕСЂРёСЏ РѕР±СЃР»СѓР¶РёРІР°РЅРёСЏ Р°РІС‚РѕРјРѕР±РёР»СЏ Рё СѓРґРѕР±РЅС‹Р№ Р»РёС‡РЅС‹Р№ РєР°Р±РёРЅРµС‚ РєР»РёРµРЅС‚Р°.",
 };
 
 export default async function RootLayout({
@@ -38,10 +38,10 @@ export default async function RootLayout({
   const user = await getCurrentUser();
   const accountLabel = user
     ? user.role === "ADMIN"
-      ? "Панель"
+      ? "РџР°РЅРµР»СЊ"
       : user.role === "EMPLOYEE"
-        ? "Заказы"
-        : "Кабинет"
+        ? "Р—Р°РєР°Р·С‹"
+        : "РљР°Р±РёРЅРµС‚"
     : undefined;
 
   return (
@@ -51,7 +51,7 @@ export default async function RootLayout({
         <div className="relative flex min-h-screen flex-col overflow-hidden">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[190px] bg-[radial-gradient(circle_at_top_left,_rgba(31,157,141,0.24),_transparent_34%),radial-gradient(circle_at_top_right,_rgba(205,145,112,0.16),_transparent_26%),linear-gradient(180deg,_#13263b_0%,_#1b3550_68%,_transparent_100%)] md:h-[240px]" />
 
-          <header className="relative z-10">
+          <header className="relative z-40">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-5 md:gap-6 md:px-6 md:py-6">
               <Link href="/" className="flex min-w-0 items-center gap-3">
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#34c3b0] font-[family:var(--font-display)] text-lg font-bold text-slate-950 shadow-[0_18px_36px_rgba(52,195,176,0.28)]">
@@ -62,7 +62,7 @@ export default async function RootLayout({
                     {APP_NAME}
                   </p>
                   <p className="mt-1 truncate text-[0.7rem] uppercase tracking-[0.22em] text-slate-300 md:text-xs md:tracking-[0.24em]">
-                    Автосервис онлайн
+                    РђРІС‚РѕСЃРµСЂРІРёСЃ РѕРЅР»Р°Р№РЅ
                   </p>
                 </div>
               </Link>
@@ -90,7 +90,7 @@ export default async function RootLayout({
                     href="/auth"
                     className="accent-button hidden rounded-full px-5 py-3 text-sm font-semibold transition md:inline-flex"
                   >
-                    Войти
+                    Р’РѕР№С‚Рё
                   </Link>
                 )}
               </div>
@@ -106,12 +106,12 @@ export default async function RootLayout({
                   {APP_NAME}
                 </p>
                 <p className="mt-3 max-w-xl text-sm text-[var(--color-muted)]">
-                  Записывайтесь онлайн, выбирайте удобное время и следите за
-                  историей обслуживания автомобиля в одном кабинете.
+                  Р—Р°РїРёСЃС‹РІР°Р№С‚РµСЃСЊ РѕРЅР»Р°Р№РЅ, РІС‹Р±РёСЂР°Р№С‚Рµ СѓРґРѕР±РЅРѕРµ РІСЂРµРјСЏ Рё СЃР»РµРґРёС‚Рµ Р·Р°
+                  РёСЃС‚РѕСЂРёРµР№ РѕР±СЃР»СѓР¶РёРІР°РЅРёСЏ Р°РІС‚РѕРјРѕР±РёР»СЏ РІ РѕРґРЅРѕРј РєР°Р±РёРЅРµС‚Рµ.
                 </p>
               </div>
               <div className="grid gap-2 text-sm text-[var(--color-muted)] md:justify-items-end">
-                <p>Калининград, Московский проспект, 184</p>
+                <p>РљР°Р»РёРЅРёРЅРіСЂР°Рґ, РњРѕСЃРєРѕРІСЃРєРёР№ РїСЂРѕСЃРїРµРєС‚, 184</p>
                 <p>+7 (4012) 99-45-45</p>
                 <p>service@avtoslot.ru</p>
               </div>
@@ -122,3 +122,4 @@ export default async function RootLayout({
     </html>
   );
 }
+
