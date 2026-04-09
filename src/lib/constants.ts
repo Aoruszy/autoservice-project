@@ -1,4 +1,4 @@
-import type { BookingStatus, UserRole } from "@prisma/client";
+﻿import type { BookingStatus, UserRole } from "@prisma/client";
 
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "AvtoSlot";
 

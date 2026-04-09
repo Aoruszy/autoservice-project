@@ -23,11 +23,11 @@ const bodyFont = Manrope({
 
 export const metadata: Metadata = {
   title: {
-    default: `${APP_NAME} | РћРЅР»Р°Р№РЅ-Р·Р°РїРёСЃСЊ РІ Р°РІС‚РѕСЃРµСЂРІРёСЃ`,
+    default: `${APP_NAME} | Онлайн-запись в автосервис`,
     template: `%s | ${APP_NAME}`,
   },
   description:
-    "РћРЅР»Р°Р№РЅ-Р·Р°РїРёСЃСЊ РІ Р°РІС‚РѕСЃРµСЂРІРёСЃ, РєР°С‚Р°Р»РѕРі СѓСЃР»СѓРі, РёСЃС‚РѕСЂРёСЏ РѕР±СЃР»СѓР¶РёРІР°РЅРёСЏ Р°РІС‚РѕРјРѕР±РёР»СЏ Рё СѓРґРѕР±РЅС‹Р№ Р»РёС‡РЅС‹Р№ РєР°Р±РёРЅРµС‚ РєР»РёРµРЅС‚Р°.",
+    "Онлайн-запись в автосервис, каталог услуг, история обслуживания автомобиля и удобный личный кабинет клиента.",
 };
 
 export default async function RootLayout({
@@ -38,10 +38,10 @@ export default async function RootLayout({
   const user = await getCurrentUser();
   const accountLabel = user
     ? user.role === "ADMIN"
-      ? "РџР°РЅРµР»СЊ"
+      ? "Панель"
       : user.role === "EMPLOYEE"
-        ? "Р—Р°РєР°Р·С‹"
-        : "РљР°Р±РёРЅРµС‚"
+        ? "Заказы"
+        : "Кабинет"
     : undefined;
 
   return (
@@ -62,7 +62,7 @@ export default async function RootLayout({
                     {APP_NAME}
                   </p>
                   <p className="mt-1 truncate text-[0.7rem] uppercase tracking-[0.22em] text-slate-300 md:text-xs md:tracking-[0.24em]">
-                    РђРІС‚РѕСЃРµСЂРІРёСЃ РѕРЅР»Р°Р№РЅ
+                    Автосервис онлайн
                   </p>
                 </div>
               </Link>
@@ -90,7 +90,7 @@ export default async function RootLayout({
                     href="/auth"
                     className="accent-button hidden rounded-full px-5 py-3 text-sm font-semibold transition md:inline-flex"
                   >
-                    Р’РѕР№С‚Рё
+                    Войти
                   </Link>
                 )}
               </div>
@@ -106,12 +106,11 @@ export default async function RootLayout({
                   {APP_NAME}
                 </p>
                 <p className="mt-3 max-w-xl text-sm text-[var(--color-muted)]">
-                  Р—Р°РїРёСЃС‹РІР°Р№С‚РµСЃСЊ РѕРЅР»Р°Р№РЅ, РІС‹Р±РёСЂР°Р№С‚Рµ СѓРґРѕР±РЅРѕРµ РІСЂРµРјСЏ Рё СЃР»РµРґРёС‚Рµ Р·Р°
-                  РёСЃС‚РѕСЂРёРµР№ РѕР±СЃР»СѓР¶РёРІР°РЅРёСЏ Р°РІС‚РѕРјРѕР±РёР»СЏ РІ РѕРґРЅРѕРј РєР°Р±РёРЅРµС‚Рµ.
+                  Записывайтесь онлайн, выбирайте удобное время и следите за историей обслуживания автомобиля в одном кабинете.
                 </p>
               </div>
               <div className="grid gap-2 text-sm text-[var(--color-muted)] md:justify-items-end">
-                <p>РљР°Р»РёРЅРёРЅРіСЂР°Рґ, РњРѕСЃРєРѕРІСЃРєРёР№ РїСЂРѕСЃРїРµРєС‚, 184</p>
+                <p>Калининград, Московский проспект, 184</p>
                 <p>+7 (4012) 99-45-45</p>
                 <p>service@avtoslot.ru</p>
               </div>
@@ -122,4 +121,3 @@ export default async function RootLayout({
     </html>
   );
 }
-
